@@ -1,0 +1,17 @@
+node_modules/.bin/biome
+node_modules/@biomejs/biome/configuration_schema.json
+node_modules/@biomejs/biome/LICENSE-APACHE
+node_modules/@biomejs/biome/LICENSE-MIT
+node_modules/@biomejs/biome/package.json
+node_modules/@biomejs/biome/README.hi.md
+node_modules/@biomejs/biome/README.ja.md
+node_modules/@biomejs/biome/README.kr.md
+node_modules/@biomejs/biome/README.md
+node_modules/@biomejs/biome/README.pt-BR.md
+node_modules/@biomejs/biome/README.zh-CN.md
+node_modules/@biomejs/biome/README.zh-TW.md
+node_modules/@biomejs/biome/ROME-LICENSE-MIT
+node_modules/@biomejs/biome/bin/biome
+node_modules/@biomejs/biome/scripts/postinstall.js
+node_modules/@biomejs/cli-darwin-arm64/biome
+node_modules/@biomejs/cli-darwin-arm64/package.json
