@@ -82,13 +82,26 @@ function draw() {
 }
 
 function CreateSurfaceData() {
+	//* x,y,z format
 	const vertexList = [];
 
+	/**
+	 * * * Richmond’s Minimal Surface
+	 * ? n = 2; t = 0; 0.25 ≤ r ≤ 1.2; 0 ≤ i ≤ 2p
+	 */
+	const n = 2;
+	const t = 0;
+	const r = 1;
 	for (let i = 0; i < 360; i += 5) {
-		vertexList.push(Math.sin(deg2rad(i)), 1, Math.cos(deg2rad(i)));
-		vertexList.push(Math.sin(deg2rad(i)), 0, Math.cos(deg2rad(i)));
+		const x =
+			-Math.cos(t + deg2rad(i)) / (2 * r) -
+			(r ** (1 + 2 * n) * Math.cos(t - (1 + 2 * n) * i)) / (2 + 4 * n);
+		const y =
+			-Math.sin(t + i) / (2 * r) +
+			(r ** (1 + 2 * n) * Math.sin(t - (1 + 2 * n) * i)) / (2 + 4 * n);
+		const z = (r ** n * Math.cos(t - n * i)) / n;
+		vertexList.push(x, y, z);
 	}
-
 	return vertexList;
 }
 
