@@ -1,7 +1,7 @@
 let gl; // The webgl context.
 let surface; // A surface model
-let shProgram; // A shader program
-let spaceball; // A SimpleRotator object that lets the user rotate the view by mouse.
+let program; // A shader program
+let ball; // A SimpleRotator object that lets the user rotate the view by mouse.
 
 function deg2rad(angle) {
 	return (angle * Math.PI) / 180;
@@ -10,20 +10,20 @@ function deg2rad(angle) {
 // Constructor
 function Model(name) {
 	this.name = name;
-	this.iVertexBuffer = gl.createBuffer();
+	this.vertexBuffer = gl.createBuffer();
 	this.count = 0;
 
-	this.BufferData = function (vertices) {
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.iVertexBuffer);
+	this.initBuffer = function (vertices) {
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STREAM_DRAW);
 
 		this.count = vertices.length / 3;
 	};
 
-	this.Draw = function () {
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.iVertexBuffer);
-		gl.vertexAttribPointer(shProgram.iAttribVertex, 3, gl.FLOAT, false, 0, 0);
-		gl.enableVertexAttribArray(shProgram.iAttribVertex);
+	this.draw = function () {
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
+		gl.vertexAttribPointer(program.vertexAttrib, 3, gl.FLOAT, false, 0, 0);
+		gl.enableVertexAttribArray(program.vertexAttrib);
 
 		gl.drawArrays(gl.LINE_STRIP, 0, this.count);
 	};
@@ -35,18 +35,18 @@ function ShaderProgram(name, program) {
 	this.prog = program;
 
 	// Location of the attribute variable in the shader program.
-	this.iAttribVertex = -1;
+	this.vertexAttrib = -1;
 	// Location of the uniform specifying a color for the primitive.
-	this.iColor = -1;
+	this.colorUni = -1;
 	// Location of the uniform matrix representing the combined transformation.
-	this.iModelViewProjectionMatrix = -1;
+	this.matrixUni = -1;
 
-	this.Use = function () {
+	this.use = function () {
 		gl.useProgram(this.prog);
 	};
 }
 
-/* Draws a colored cube, along with a set of coordinate axes.
+/* draws a colored cube, along with a set of coordinate axes.
  * (Note that the use of the above drawPrimitive function is not an efficient
  * way to draw with WebGL.  Here, the geometry is so simple that it doesn't matter.)
  */
@@ -58,7 +58,7 @@ function draw() {
 	const projection = m4.perspective(Math.PI / 8, 1, 8, 12);
 
 	/* Get the view matrix from the SimpleRotator object.*/
-	const modelView = spaceball.getViewMatrix();
+	const modelView = ball.getViewMatrix();
 
 	const rotateToPointZero = m4.axisRotation(
 		[Math.SQRT1_2, Math.SQRT1_2, 0],
@@ -73,16 +73,12 @@ function draw() {
        combined transformation matrix, and send that to the shader program. */
 	const modelViewProjection = m4.multiply(projection, matAccum1);
 
-	gl.uniformMatrix4fv(
-		shProgram.iModelViewProjectionMatrix,
-		false,
-		modelViewProjection,
-	);
+	gl.uniformMatrix4fv(program.matrixUni, false, modelViewProjection);
 
-	/* Draw the six faces of a cube, with different colors. */
-	gl.uniform4fv(shProgram.iColor, [1, 1, 0, 1]);
+	/* setting color for an all vertices. */
+	gl.uniform4fv(program.colorUni, [1, 1, 0, 1]);
 
-	surface.Draw();
+	surface.draw();
 }
 
 function CreateSurfaceData() {
@@ -100,18 +96,15 @@ function CreateSurfaceData() {
 function initGL() {
 	const prog = createProgram(gl, vertexShaderSource, fragmentShaderSource);
 
-	shProgram = new ShaderProgram("Basic", prog);
-	shProgram.Use();
+	program = new ShaderProgram("Basic", prog);
+	program.use();
 
-	shProgram.iAttribVertex = gl.getAttribLocation(prog, "vertex");
-	shProgram.iModelViewProjectionMatrix = gl.getUniformLocation(
-		prog,
-		"ModelViewProjectionMatrix",
-	);
-	shProgram.iColor = gl.getUniformLocation(prog, "color");
+	program.vertexAttrib = gl.getAttribLocation(prog, "vertex");
+	program.matrixUni = gl.getUniformLocation(prog, "matrix");
+	program.colorUni = gl.getUniformLocation(prog, "color");
 
 	surface = new Model("Surface");
-	surface.BufferData(CreateSurfaceData());
+	surface.initBuffer(CreateSurfaceData());
 
 	gl.enable(gl.DEPTH_TEST);
 }
@@ -151,27 +144,26 @@ function createProgram(gl, vShader, fShader) {
  * initialization function that will be called when the page has loaded
  */
 function init() {
-	let canvas;
+	const errorMessage = document.createElement("p");
+	document.body.appendChild(errorMessage);
 	try {
-		canvas = document.getElementById("webglcanvas");
+		const canvas = document.querySelector("canvas");
 		gl = canvas.getContext("webgl");
+		ball = new TrackballRotator(canvas, draw, 0);
 		if (!gl) {
 			throw "Browser does not support WebGL";
 		}
 	} catch (e) {
-		document.getElementById("canvas-holder").innerHTML =
+		errorMessage.innerHTML =
 			"<p>Sorry, could not get a WebGL graphics context.</p>";
 		return;
 	}
 	try {
 		initGL(); // initialize the WebGL graphics context
 	} catch (e) {
-		document.getElementById("canvas-holder").innerHTML =
-			`<p>Sorry, could not initialize the WebGL graphics context: ${e}</p>`;
+		errorMessage.innerHTML = `<p>Sorry, could not initialize the WebGL graphics context: ${e}</p>`;
 		return;
 	}
-
-	spaceball = new TrackballRotator(canvas, draw, 0);
 
 	draw();
 }

@@ -1,14 +1,11 @@
-
-
 // Vertex shader
 const vertexShaderSource = `
 attribute vec3 vertex;
-uniform mat4 ModelViewProjectionMatrix;
+uniform mat4 matrix;
 
 void main() {
-    gl_Position = ModelViewProjectionMatrix * vec4(vertex,1.0);
+    gl_Position = matrix * vec4(vertex,1.0);
 }`;
-
 
 // Fragment shader
 const fragmentShaderSource = `

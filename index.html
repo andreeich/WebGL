@@ -1,31 +1,21 @@
 <!DOCTYPE html>
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>PA#1</title>
+  </head>
 
+  <body onload="init()">
+    <h2>A Richmond's Minimal Surface with "Trackball" Mouse Rotation</h2>
+    <p>
+      Drag your mouse on the canvas to rotate it.<br />
+      (On a touch screen, you can use your finger.)
+    </p>
+    <canvas width="600" height="600"></canvas>
 
-<title>PA#1</title>
-<style>
-    body {
-        background-color: #EEEEEE;
-    }
-</style>
-
-<script src="./Utils/trackball-rotator.js"></script>
-<script src="./Utils/m4.js"></script>
-<script src="./shader.gpu"></script>
-<script src="./main.js"></script>
-
-</head>
-<body onload="init()">
-
-<h2>A Cube with "Trackball" Mouse Rotation</h2>
-
-<p id="message">Drag your mouse on the cube to rotate it.<br>
-(On a touch screen, you can use your finger.)</p>
-
-
-<div id="canvas-holder">
-   <canvas width="600" height="600" id="webglcanvas" style="background-color:red"></canvas>
-</div>
-
-
-</body></html>
+    <script src="./Utils/trackball-rotator.js"></script>
+    <script src="./Utils/m4.js"></script>
+    <script src="./shader.js"></script>
+    <script src="./main.js"></script>
+  </body>
+</html>
