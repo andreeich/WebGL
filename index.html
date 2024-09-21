@@ -1,17 +1,23 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>PA#1</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>A Richmond's Minimal Surface | Andrei Chervoniak</title>
+    <link rel="stylesheet" href="./style.css" />
   </head>
 
   <body onload="init()">
-    <h2>A Richmond's Minimal Surface with "Trackball" Mouse Rotation</h2>
+    <h1>A Richmond's Minimal Surface</h1>
     <p>
-      Drag your mouse on the canvas to rotate it.<br />
-      (On a touch screen, you can use your finger.)
+      Drag your mouse on the canvas to rotate it. (On a touch screen, you can
+      use your finger.)
     </p>
-    <canvas width="600" height="600"></canvas>
+    <canvas
+      width="1200"
+      height="1200"
+      style="width: 400px; height: 400px"
+    ></canvas>
 
     <script src="./Utils/trackball-rotator.js"></script>
     <script src="./Utils/m4.js"></script>
