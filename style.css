@@ -2,12 +2,14 @@
 
 * {
   box-sizing: border-box;
-  margin-inline: auto;
 }
 
 body {
   font-family: "Inter", sans-serif;
   font-optical-sizing: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 h1,
@@ -44,4 +46,41 @@ canvas {
 body {
   text-align: center;
   padding: 1rem;
+}
+
+.canvas-container {
+  display: flex;
+  gap: 4rem;
+}
+
+.canvas-container__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-block: 2rem;
+}
+
+.canvas-container__controls h2 {
+  text-align: left;
+}
+
+.form-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.form-input label {
+  font-weight: 500;
+}
+
+.form-input__slider {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.form-input__value {
+  min-width: 3ch;
 }

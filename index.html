@@ -1,27 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>A Richmond's Minimal Surface | Andrei Chervoniak</title>
-    <link rel="stylesheet" href="./style.css" />
-  </head>
 
-  <body onload="init()">
-    <h1>A Richmond's Minimal Surface</h1>
-    <p>
-      Drag your mouse on the canvas to rotate it. (On a touch screen, you can
-      use your finger.)
-    </p>
-    <canvas
-      width="1200"
-      height="1200"
-      style="width: 400px; height: 400px"
-    ></canvas>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>A Sievert's Surface | Andrei Chervoniak</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
 
-    <script src="./Utils/trackball-rotator.js"></script>
-    <script src="./Utils/m4.js"></script>
-    <script src="./shader.js"></script>
-    <script src="./main.js"></script>
-  </body>
+<body>
+  <h1>A Sievert's Surface Surface</h1>
+  <p>
+    Drag your mouse on the canvas to rotate it. (On a touch screen, you can
+    use your finger.)
+  </p>
+  <article class="canvas-container">
+    <canvas width="1200" height="1200" style="width: 400px; height: 400px"></canvas>
+    <section class="canvas-container__controls">
+      <h2>Control panel</h2>
+      <div class="form-input">
+        <label for="u-stepper">The number of U polylines</label>
+        <div class="form-input__slider">
+          <span id="u-counter" class="form-input__value">50</span>
+          <input type="range" name="u-stepper" id="u-stepper" min="20" max="100" value="50">
+        </div>
+      </div>
+      <div class="form-input">
+        <label for="v-stepper">The number of V polylines</label>
+        <div class="form-input__slider">
+          <span id="v-counter" class="form-input__value">50</span>
+          <input type="range" name="v-stepper" id="v-stepper" min="20" max="100" value="50">
+        </div>
+      </div>
+    </section>
+  </article>
+
+  <script src="./Utils/trackball-rotator.js"></script>
+  <script src="./Utils/m4.js"></script>
+  <script src="./shader.js"></script>
+  <script src="./main.js" type="module"></script>
+</body>
+
 </html>
