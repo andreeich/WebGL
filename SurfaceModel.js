@@ -18,10 +18,11 @@ export class SurfaceModel {
 	}
 
 	generateUVLines() {
-		const uMin = -1;
-		const uMax = 1;
-		const vMin = 0.2;
-		const vMax = 1;
+		const uMin = (-0.95 * Math.PI) / 2;
+		const uMax = (0.95 * Math.PI) / 2;
+		const vMin = -0.95 * Math.PI;
+		const vMax = 0.95 * Math.PI;
+		const c = 1;
 
 		const du = (uMax - uMin) / this.uSteps;
 		const dv = (vMax - vMin) / this.vSteps;
@@ -32,7 +33,14 @@ export class SurfaceModel {
 			const uLine = [];
 			for (let vIndex = 0; vIndex <= this.vSteps; vIndex++) {
 				const v = vMin + vIndex * dv;
-				const point = this.calculateSurfacePoint(u, v);
+				const phi =
+					-u / Math.sqrt(c + 1) + Math.atan(Math.sqrt(c + 1) * Math.tan(u));
+				const a = 2 / (c + 1 - c * Math.sin(v) ** 2 * Math.cos(u) ** 2);
+				const r =
+					(a / Math.sqrt(c)) *
+					Math.sqrt((c + 1) * (1 + c * Math.sin(u) ** 2)) *
+					Math.sin(v);
+				const point = this.calculateSurfacePoint(u, v, c, phi, a, r);
 				uLine.push(point);
 			}
 			this.uLines.push(uLine);
@@ -45,15 +53,11 @@ export class SurfaceModel {
 		}
 	}
 
-	calculateSurfacePoint(u, v) {
-		// Parametric equation for Richmond's Minimal Surface
-		const x =
-			(-3 * u - u ** 5 + 2 * u ** 3 * v ** 2 + 3 * u * v ** 4) /
-			(6 * (u ** 2 + v ** 2));
-		const y =
-			(-3 * v - 3 * u ** 4 * v - 2 * u ** 2 * v ** 3 + v ** 5) /
-			(6 * (u ** 2 + v ** 2));
-		const z = u;
+	calculateSurfacePoint(u, v, c, phi, a, r) {
+		// Parametric equation for Sievert's Surface
+		const x = r * Math.cos(phi);
+		const y = r * Math.sin(phi);
+		const z = (Math.log(Math.tan(v / 2)) + a * (c + 1) * Math.cos(v)) / 2;
 		return [x, y, z];
 	}
 
