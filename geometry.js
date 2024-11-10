@@ -1,115 +1,158 @@
-// geometry.js
-class SurfaceModel {
-	constructor(name) {
+export class SurfaceModel {
+	constructor(name, uSteps, vSteps) {
 		this.name = name;
+		this.uSteps = uSteps || 50; // Default to 50 if not provided
+		this.vSteps = vSteps || 50; // Default to 50 if not provided
 		this.uLines = [];
 		this.vLines = [];
+		this.vertices = [];
 		this.indices = [];
-		this.vertexBuffer = null;
-		this.indexBuffer = null;
-	}
-
-	getUVSteps() {
-		const uStepper = document.getElementById("u-stepper");
-		const vStepper = document.getElementById("v-stepper");
-
-		return {
-			u: uStepper.value,
-			v: vStepper.value,
-		};
+		this.normals = [];
 	}
 
 	createSurfaceData() {
+		this.generateUVLines();
+		this.generateVertices();
+		this.generateIndices();
+		this.generateNormals();
+	}
+
+	generateUVLines() {
 		const uMin = -1;
 		const uMax = 1;
 		const vMin = 0.2;
 		const vMax = 1;
-		const { u, v } = this.getUVSteps();
-		const uSteps = u || 50;
-		const vSteps = v || 50;
 
-		const du = (uMax - uMin) / uSteps;
-		const dv = (vMax - vMin) / vSteps;
+		const du = (uMax - uMin) / this.uSteps;
+		const dv = (vMax - vMin) / this.vSteps;
 
-		// Generate U and V lines
-		for (let uIndex = 0; uIndex <= uSteps; uIndex++) {
+		// Generate U lines
+		for (let uIndex = 0; uIndex <= this.uSteps; uIndex++) {
 			const u = uMin + uIndex * du;
 			const uLine = [];
-			for (let vIndex = 0; vIndex <= vSteps; vIndex++) {
+			for (let vIndex = 0; vIndex <= this.vSteps; vIndex++) {
 				const v = vMin + vIndex * dv;
-
-				// Parametric equation for Richmond's Minimal Surface
-				const x =
-					(-3 * u - u ** 5 + 2 * u ** 3 * v ** 2 + 3 * u * v ** 4) /
-					(6 * (u ** 2 + v ** 2));
-				const y =
-					(-3 * v - 3 * u ** 4 * v - 2 * u ** 2 * v ** 3 + v ** 5) /
-					(6 * (u ** 2 + v ** 2));
-				const z = u;
-
-				uLine.push([x, y, z]);
+				const point = this.calculateSurfacePoint(u, v);
+				uLine.push(point);
 			}
 			this.uLines.push(uLine);
 		}
 
 		// Generate V lines by transposing the uLines array
-		for (let vIndex = 0; vIndex <= vSteps; vIndex++) {
-			const vLine = [];
-			for (let uIndex = 0; uIndex <= uSteps; uIndex++) {
-				vLine.push(this.uLines[uIndex][vIndex]);
-			}
+		for (let vIndex = 0; vIndex <= this.vSteps; vIndex++) {
+			const vLine = this.uLines.map((uLine) => uLine[vIndex]);
 			this.vLines.push(vLine);
 		}
-
-		// Generate indices for the triangles
-		const indices = [];
-		for (let uIndex = 0; uIndex < this.uLines.length - 1; uIndex++) {
-			for (let vIndex = 0; vIndex < this.uLines[uIndex].length - 1; vIndex++) {
-				const topLeft = uIndex * this.uLines[uIndex].length + vIndex;
-				const topRight = topLeft + 1;
-				const bottomLeft = (uIndex + 1) * this.uLines[uIndex].length + vIndex;
-				const bottomRight = bottomLeft + 1;
-
-				indices.push(topLeft, bottomLeft, topRight);
-				indices.push(bottomLeft, bottomRight, topRight);
-			}
-		}
-		this.indices = indices;
 	}
 
-	getVertices() {
-		const vertices = [];
-		// Add U lines
-		for (const uLine of this.uLines) {
-			for (const point of uLine) {
-				vertices.push(...point);
+	calculateSurfacePoint(u, v) {
+		// Parametric equation for Richmond's Minimal Surface
+		const x =
+			(-3 * u - u ** 5 + 2 * u ** 3 * v ** 2 + 3 * u * v ** 4) /
+			(6 * (u ** 2 + v ** 2));
+		const y =
+			(-3 * v - 3 * u ** 4 * v - 2 * u ** 2 * v ** 3 + v ** 5) /
+			(6 * (u ** 2 + v ** 2));
+		const z = u;
+		return [x, y, z];
+	}
+
+	generateVertices() {
+		this.vertices = this.uLines.flat(2);
+	}
+
+	generateIndices() {
+		this.indices = [];
+		for (let u = 0; u < this.uSteps; u++) {
+			for (let v = 0; v < this.vSteps; v++) {
+				const topLeft = u * (this.vSteps + 1) + v;
+				const topRight = topLeft + 1;
+				const bottomLeft = (u + 1) * (this.vSteps + 1) + v;
+				const bottomRight = bottomLeft + 1;
+
+				this.indices.push(topLeft, bottomLeft, topRight);
+				this.indices.push(topRight, bottomLeft, bottomRight);
 			}
 		}
-		// Add V lines
-		for (const vLine of this.vLines) {
-			for (const point of vLine) {
-				vertices.push(...point);
+	}
+
+	generateNormals() {
+		const normals = new Array(this.vertices.length).fill(0);
+
+		for (let i = 0; i < this.indices.length; i += 3) {
+			const i1 = this.indices[i] * 3;
+			const i2 = this.indices[i + 1] * 3;
+			const i3 = this.indices[i + 2] * 3;
+
+			const v1 = this.vertices.slice(i1, i1 + 3);
+			const v2 = this.vertices.slice(i2, i2 + 3);
+			const v3 = this.vertices.slice(i3, i3 + 3);
+
+			const normal = this.calculateFaceNormal(v1, v2, v3);
+
+			for (let j = 0; j < 3; j++) {
+				const idx = this.indices[i + j] * 3;
+				normals[idx] += normal[0];
+				normals[idx + 1] += normal[1];
+				normals[idx + 2] += normal[2];
 			}
 		}
-		return vertices;
+
+		this.normals = this.normalizeVectors(normals);
+	}
+
+	calculateFaceNormal(v1, v2, v3) {
+		const edge1 = [v2[0] - v1[0], v2[1] - v1[1], v2[2] - v1[2]];
+		const edge2 = [v3[0] - v1[0], v3[1] - v1[1], v3[2] - v1[2]];
+
+		return [
+			edge1[1] * edge2[2] - edge1[2] * edge2[1],
+			edge1[2] * edge2[0] - edge1[0] * edge2[2],
+			edge1[0] * edge2[1] - edge1[1] * edge2[0],
+		];
+	}
+
+	normalizeVectors(vectors) {
+		const normalized = [];
+		for (let i = 0; i < vectors.length; i += 3) {
+			const length = Math.sqrt(
+				vectors[i] ** 2 + vectors[i + 1] ** 2 + vectors[i + 2] ** 2,
+			);
+			if (length > 0) {
+				normalized.push(
+					vectors[i] / length,
+					vectors[i + 1] / length,
+					vectors[i + 2] / length,
+				);
+			} else {
+				normalized.push(0, 0, 0);
+			}
+		}
+		return normalized;
 	}
 
 	initBuffer(gl) {
-		// Create a VBO for the vertices
 		this.vertexBuffer = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
 		gl.bufferData(
 			gl.ARRAY_BUFFER,
-			new Float32Array(this.getVertices()),
+			new Float32Array(this.vertices),
 			gl.STATIC_DRAW,
 		);
 
-		// Create a VBO for the indices
 		this.indexBuffer = gl.createBuffer();
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
 		gl.bufferData(
 			gl.ELEMENT_ARRAY_BUFFER,
 			new Uint16Array(this.indices),
+			gl.STATIC_DRAW,
+		);
+
+		this.normalBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
+		gl.bufferData(
+			gl.ARRAY_BUFFER,
+			new Float32Array(this.normals),
 			gl.STATIC_DRAW,
 		);
 	}
@@ -119,9 +162,11 @@ class SurfaceModel {
 		gl.vertexAttribPointer(program.vertexAttrib, 3, gl.FLOAT, false, 0, 0);
 		gl.enableVertexAttribArray(program.vertexAttrib);
 
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
+		gl.vertexAttribPointer(program.normalAttrib, 3, gl.FLOAT, false, 0, 0);
+		gl.enableVertexAttribArray(program.normalAttrib);
+
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
 		gl.drawElements(gl.TRIANGLES, this.indices.length, gl.UNSIGNED_SHORT, 0);
 	}
 }
-
-export { SurfaceModel };

@@ -60,6 +60,10 @@ body {
   margin-block: 2rem;
 }
 
+.canvas-container__controls h2 {
+  text-align: left;
+}
+
 .form-input {
   display: flex;
   flex-direction: column;
@@ -75,4 +79,8 @@ body {
   display: flex;
   gap: 0.5rem;
   align-items: center;
+}
+
+.form-input__value {
+  min-width: 3ch;
 }
