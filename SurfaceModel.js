@@ -8,6 +8,9 @@ export class SurfaceModel {
 		this.vertices = [];
 		this.indices = [];
 		this.normals = [];
+		this.texCoords = [];
+		this.tangents = [];
+		this.textures = {};
 	}
 
 	createSurfaceData() {
@@ -15,6 +18,8 @@ export class SurfaceModel {
 		this.generateVertices();
 		this.generateIndices();
 		this.generateNormals();
+		this.generateTexCoords();
+		this.generateTangents();
 	}
 
 	generateUVLines() {
@@ -116,6 +121,22 @@ export class SurfaceModel {
 		];
 	}
 
+	generateTexCoords() {
+		for (let uIndex = 0; uIndex <= this.uSteps; uIndex++) {
+			for (let vIndex = 0; vIndex <= this.vSteps; vIndex++) {
+				this.texCoords.push(uIndex / this.uSteps, vIndex / this.vSteps);
+			}
+		}
+	}
+
+	generateTangents() {
+		for (let uIndex = 0; uIndex <= this.uSteps; uIndex++) {
+			for (let vIndex = 0; vIndex <= this.vSteps; vIndex++) {
+				this.tangents.push(1, 0, 0); // Placeholder tangent vector
+			}
+		}
+	}
+
 	normalizeVectors(vectors) {
 		const normalized = [];
 		for (let i = 0; i < vectors.length; i += 3) {
@@ -133,6 +154,81 @@ export class SurfaceModel {
 			}
 		}
 		return normalized;
+	}
+
+	loadTexture(gl, url) {
+		const texture = gl.createTexture();
+		gl.bindTexture(gl.TEXTURE_2D, texture);
+
+		const level = 0;
+		const internalFormat = gl.RGBA;
+		const width = 1;
+		const height = 1;
+		const border = 0;
+		const srcFormat = gl.RGBA;
+		const srcType = gl.UNSIGNED_BYTE;
+		const pixel = new Uint8Array([0, 0, 255, 255]); // blue
+		gl.texImage2D(
+			gl.TEXTURE_2D,
+			level,
+			internalFormat,
+			width,
+			height,
+			border,
+			srcFormat,
+			srcType,
+			pixel,
+		);
+
+		const image = new Image();
+		image.onload = () => {
+			gl.bindTexture(gl.TEXTURE_2D, texture);
+			gl.texImage2D(
+				gl.TEXTURE_2D,
+				level,
+				internalFormat,
+				srcFormat,
+				srcType,
+				image,
+			);
+
+			if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
+				gl.generateMipmap(gl.TEXTURE_2D);
+			} else {
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+			}
+		};
+		image.src = url;
+
+		return texture;
+	}
+
+	loadTextures(gl) {
+		this.textures.diffuse = this.loadTexture(
+			gl,
+			"assets/chocolate_basecolor.png",
+		);
+		this.textures.specular = this.loadTexture(
+			gl,
+			"assets/chocolate_height.png",
+		);
+		this.textures.normal = this.loadTexture(gl, "assets/chocolate_normal.png");
+	}
+
+	bindTextures(gl, program) {
+		gl.activeTexture(gl.TEXTURE0);
+		gl.bindTexture(gl.TEXTURE_2D, this.textures.diffuse);
+		gl.uniform1i(program.diffuseTextureUni, 0);
+
+		gl.activeTexture(gl.TEXTURE1);
+		gl.bindTexture(gl.TEXTURE_2D, this.textures.specular);
+		gl.uniform1i(program.specularTextureUni, 1);
+
+		gl.activeTexture(gl.TEXTURE2);
+		gl.bindTexture(gl.TEXTURE_2D, this.textures.normal);
+		gl.uniform1i(program.normalTextureUni, 2);
 	}
 
 	initBuffer(gl) {
@@ -159,6 +255,22 @@ export class SurfaceModel {
 			new Float32Array(this.normals),
 			gl.STATIC_DRAW,
 		);
+
+		this.texCoordBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBuffer);
+		gl.bufferData(
+			gl.ARRAY_BUFFER,
+			new Float32Array(this.texCoords),
+			gl.STATIC_DRAW,
+		);
+
+		this.tangentBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.tangentBuffer);
+		gl.bufferData(
+			gl.ARRAY_BUFFER,
+			new Float32Array(this.tangents),
+			gl.STATIC_DRAW,
+		);
 	}
 
 	draw(gl, program) {
@@ -170,7 +282,19 @@ export class SurfaceModel {
 		gl.vertexAttribPointer(program.normalAttrib, 3, gl.FLOAT, false, 0, 0);
 		gl.enableVertexAttribArray(program.normalAttrib);
 
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBuffer);
+		gl.vertexAttribPointer(program.texCoordAttrib, 2, gl.FLOAT, false, 0, 0);
+		gl.enableVertexAttribArray(program.texCoordAttrib);
+
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.tangentBuffer);
+		gl.vertexAttribPointer(program.tangentAttrib, 3, gl.FLOAT, false, 0, 0);
+		gl.enableVertexAttribArray(program.tangentAttrib);
+
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
 		gl.drawElements(gl.TRIANGLES, this.indices.length, gl.UNSIGNED_SHORT, 0);
 	}
+}
+
+function isPowerOf2(value) {
+	return (value & (value - 1)) === 0;
 }

@@ -18,6 +18,7 @@ function initSurface() {
 	surface = new SurfaceModel("Richmond's Minimal Surface", u, v);
 	surface.createSurfaceData();
 	surface.initBuffer(gl);
+	surface.loadTextures(gl);
 }
 
 function initShaderProgram() {
@@ -93,6 +94,7 @@ function draw() {
 	gl.uniform3f(program.specularColorUni, 1.0, 1.0, 1.0);
 	gl.uniform1f(program.shininessUni, 32.0);
 
+	surface.bindTextures(gl, program);
 	surface.draw(gl, program);
 }
 
