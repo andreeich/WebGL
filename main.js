@@ -66,6 +66,43 @@ function animateLight(time) {
 	requestAnimationFrame(animateLight);
 }
 
+function updateIndicators() {
+	const rotationCenter = document.getElementById("rotation-center");
+	const rotationAngle = document.getElementById("rotation-angle");
+
+	rotationCenter.textContent = `(${surface.rotationCenter.u.toFixed(2)}, ${surface.rotationCenter.v.toFixed(2)})`;
+	rotationAngle.textContent = surface.rotationAngle.toFixed(2);
+}
+
+function handleKeyDown(event) {
+	const step = 0.1;
+	switch (event.key) {
+		case "a":
+		case "A":
+			surface.moveRotationCenter(-step, 0);
+			break;
+		case "d":
+		case "D":
+			surface.moveRotationCenter(step, 0);
+			break;
+		case "w":
+		case "W":
+			surface.moveRotationCenter(0, step);
+			break;
+		case "s":
+		case "S":
+			surface.moveRotationCenter(0, -step);
+			break;
+		case "r":
+		case "R":
+			surface.rotateTextureCoordinates(surface.rotationAngle + Math.PI / 180);
+			surface.updateTexCoordBuffer(gl);
+			break;
+	}
+	updateIndicators();
+	draw();
+}
+
 function draw() {
 	gl.clearColor(1, 1, 1, 1);
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -114,6 +151,8 @@ function init() {
 		setupUIControls();
 		draw();
 		animateLight(0);
+
+		window.addEventListener("keydown", handleKeyDown);
 	} catch (e) {
 		console.error(`Initialization error: ${e}`);
 		const errorMessage = document.createElement("p");
@@ -121,5 +160,4 @@ function init() {
 		document.body.appendChild(errorMessage);
 	}
 }
-
 document.addEventListener("DOMContentLoaded", init);

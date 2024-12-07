@@ -11,6 +11,8 @@ export class SurfaceModel {
 		this.texCoords = [];
 		this.tangents = [];
 		this.textures = {};
+		this.rotationCenter = { u: 0.5, v: 0.5 }; // Default rotation center
+		this.rotationAngle = 0; // Default rotation angle
 	}
 
 	createSurfaceData() {
@@ -215,6 +217,37 @@ export class SurfaceModel {
 			"assets/chocolate_height.png",
 		);
 		this.textures.normal = this.loadTexture(gl, "assets/chocolate_normal.png");
+	}
+
+	rotateTextureCoordinates(angle) {
+		this.rotationAngle = angle;
+		const cosAngle = Math.cos(angle);
+		const sinAngle = Math.sin(angle);
+		const { u: centerU, v: centerV } = this.rotationCenter;
+
+		for (let i = 0; i < this.texCoords.length; i += 2) {
+			const u = this.texCoords[i] - centerU;
+			const v = this.texCoords[i + 1] - centerV;
+
+			this.texCoords[i] = u * cosAngle - v * sinAngle + centerU;
+			this.texCoords[i + 1] = u * sinAngle + v * cosAngle + centerV;
+		}
+	}
+
+	moveRotationCenter(deltaU, deltaV) {
+		this.rotationCenter.u += deltaU;
+		this.rotationCenter.v += deltaV;
+		this.rotationCenter.u = Math.max(0, Math.min(1, this.rotationCenter.u));
+		this.rotationCenter.v = Math.max(0, Math.min(1, this.rotationCenter.v));
+	}
+
+	updateTexCoordBuffer(gl) {
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBuffer);
+		gl.bufferData(
+			gl.ARRAY_BUFFER,
+			new Float32Array(this.texCoords),
+			gl.STATIC_DRAW,
+		);
 	}
 
 	bindTextures(gl, program) {
